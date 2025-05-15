@@ -40,12 +40,21 @@ def draw_planet(radius, texture_id, self_rotation_angle=0):
     glPopMatrix()
 
 # Setup lighting
+# def setup_lighting():
+#     glEnable(GL_LIGHTING)
+#     glEnable(GL_LIGHT0)
+#     glLightfv(GL_LIGHT0, GL_POSITION,  (0, 0, 0, 1))
+#     glLightfv(GL_LIGHT0, GL_DIFFUSE,   (1.0, 1.0, 1.0, 1.0))
+#     glLightfv(GL_LIGHT0, GL_SPECULAR,  (1.0, 1.0, 1.0, 1.0))
 def setup_lighting():
     glEnable(GL_LIGHTING)
     glEnable(GL_LIGHT0)
-    glLightfv(GL_LIGHT0, GL_POSITION,  (0, 0, 0, 1))
+    # Light positioned at the origin (Sun's position)
+    glLightfv(GL_LIGHT0, GL_POSITION,  (0.0, 0.0, 0.0, 1.0))
     glLightfv(GL_LIGHT0, GL_DIFFUSE,   (1.0, 1.0, 1.0, 1.0))
     glLightfv(GL_LIGHT0, GL_SPECULAR,  (1.0, 1.0, 1.0, 1.0))
+    # Optional: set ambient light low or zero to make Sun the sole source
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, (0.05, 0.05, 0.05, 1))
 
 # Initialize OpenGL context
 def init():
@@ -177,6 +186,10 @@ def main():
         glLoadIdentity()
         # gluLookAt(0, 8, 35, 0, 0, 0, 0, 1, 0)
         gluLookAt(0, 15, zoom_distance, 0, 0, 0, 0, 1, 0)
+
+        # Set up lighting, fixing camera-source lightning
+        glLightfv(GL_LIGHT0, GL_POSITION, (0.0, 0.0, 0.0, 1.0))  # Sun at origin
+
 
         elapsed = time.time() - start_time
 
