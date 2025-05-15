@@ -131,6 +131,19 @@ def main():
     
     zoom_distance = 70  # initial camera zoom
 
+      # Camera rotation angles (degrees)
+    cam_rot_x = 20   # tilt up/down (around X-axis)
+    cam_rot_y = 0    # turn left/right (around Y-axis)
+
+    # Camera position in world space
+    cam_pos_x = 0
+    cam_pos_y = 15
+    cam_pos_z = zoom_distance
+
+      # Movement parameters
+    move_speed = 0.5
+    rot_speed = 2
+
 
     textures = {
         "sun": load_texture("textures/sunmap.jpg"),
@@ -182,10 +195,70 @@ def main():
                 zoom_distance -= event.y * 2  # scroll up = zoom in, down = zoom out
                 zoom_distance = max(10, min(200, zoom_distance))  # clamp zoom
 
+          # Get pressed keys for movement
+        keys = pygame.key.get_pressed()
+
+        # Camera rotation with arrow keys
+        if keys[pygame.K_UP]:
+            cam_rot_x = max(-89, cam_rot_x - rot_speed)
+        if keys[pygame.K_DOWN]:
+            cam_rot_x = min(89, cam_rot_x + rot_speed)
+        if keys[pygame.K_LEFT]:
+            cam_rot_y -= rot_speed
+        if keys[pygame.K_RIGHT]:
+            cam_rot_y += rot_speed
+
+        # Calculate forward vector based on rotation (simplified spherical coordinates)
+        rad_x = math.radians(cam_rot_x)
+        rad_y = math.radians(cam_rot_y)
+
+        forward_x = math.cos(rad_x) * math.sin(rad_y)
+        forward_y = math.sin(rad_x)
+        forward_z = math.cos(rad_x) * math.cos(rad_y)
+
+        # Calculate right vector (perpendicular to forward, assuming up vector is (0,1,0))
+        right_x = math.sin(rad_y - math.pi/2)
+        right_y = 0
+        right_z = math.cos(rad_y - math.pi/2)
+
+        # WASD movement
+        if keys[pygame.K_w]:
+            cam_pos_x += forward_x * move_speed
+            cam_pos_y += forward_y * move_speed
+            cam_pos_z += forward_z * move_speed
+        if keys[pygame.K_s]:
+            cam_pos_x -= forward_x * move_speed
+            cam_pos_y -= forward_y * move_speed
+            cam_pos_z -= forward_z * move_speed
+        if keys[pygame.K_a]:
+            cam_pos_x -= right_x * move_speed
+            cam_pos_z -= right_z * move_speed
+        if keys[pygame.K_d]:
+            cam_pos_x += right_x * move_speed
+            cam_pos_z += right_z * move_speed
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
+
+        # Compute where camera is looking at
+        center_x = cam_pos_x + forward_x
+        center_y = cam_pos_y + forward_y
+        center_z = cam_pos_z + forward_z
+
+        gluLookAt(cam_pos_x, 
+                  cam_pos_y + 8, 
+                  cam_pos_z,
+                  center_x, 
+                  center_y + 8, 
+                  center_z,
+                  0, 
+                  1, 
+                  0,
+                  )
+
+
         # gluLookAt(0, 8, 35, 0, 0, 0, 0, 1, 0)
-        gluLookAt(0, 15, zoom_distance, 0, 0, 0, 0, 1, 0)
+        # gluLookAt(0, 15, zoom_distance, 0, 0, 0, 0, 1, 0)
 
         # Set up lighting, fixing camera-source lightning
         glLightfv(GL_LIGHT0, GL_POSITION, (0.0, 0.0, 0.0, 1.0))  # Sun at origin
